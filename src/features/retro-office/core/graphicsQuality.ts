@@ -1,6 +1,8 @@
 // Graphics quality presets for the immersive office renderer.
 // Persisted in localStorage so the choice survives reloads.
 
+import { isMobileDevice } from "@/lib/dom";
+
 export type GraphicsQuality = "low" | "balanced" | "ultra";
 
 export const GRAPHICS_QUALITY_STORAGE_KEY = "hermes-office-graphics-quality-v1";
@@ -48,8 +50,8 @@ export type GraphicsQualityConfig = {
 
 const QUALITY_CONFIGS: Record<GraphicsQuality, GraphicsQualityConfig> = {
   low: {
-    shadowMapSize: 1024,
-    maxDpr: 1.25,
+    shadowMapSize: 512,
+    maxDpr: 1.0,
     postProcessing: false,
     ambientOcclusion: false,
     aoQuality: "performance",
@@ -154,10 +156,15 @@ export const detectSoftwareWebGL = (): boolean => {
 
 /**
  * The quality the office should boot with: the user's stored choice, or a
- * hardware-appropriate default.
+ * hardware-appropriate default. Mobile devices and software renderers
+ * default to "low" to save battery, thermal headroom, and avoid frame drops.
  */
-export const resolveInitialGraphicsQuality = (): GraphicsQuality =>
-  loadStoredGraphicsQuality() ?? (detectSoftwareWebGL() ? "low" : "balanced");
+export const resolveInitialGraphicsQuality = (): GraphicsQuality => {
+  const stored = loadStoredGraphicsQuality();
+  if (stored) return stored;
+  if (isMobileDevice() || detectSoftwareWebGL()) return "low";
+  return "balanced";
+};
 
 export const saveGraphicsQuality = (quality: GraphicsQuality) => {
   if (typeof window === "undefined") return;

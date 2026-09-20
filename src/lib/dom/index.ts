@@ -32,3 +32,15 @@ export const isNearBottom = (metrics: ScrollMetrics, thresholdPx: number = 40): 
   return remaining <= thresholdPx;
 };
 
+/**
+ * Detect whether the current client is a mobile device or small touch screen.
+ */
+export const isMobileDevice = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const hasTouch = typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 1;
+  const isSmallScreen = window.innerWidth <= 768;
+  return isMobileUA || (hasTouch && isSmallScreen);
+};
+

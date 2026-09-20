@@ -1017,7 +1017,12 @@ export function OfficeScreen({
   const historyInFlightRef = useRef<Set<string>>(new Set());
   const lastTransportHistoryRefreshKeyRef = useRef<Record<string, string>>({});
   const [chatOpen, setChatOpen] = useState(false);
-  const [chatRosterCollapsed, setChatRosterCollapsed] = useState(false);
+  const [chatRosterCollapsed, setChatRosterCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth <= 768;
+    }
+    return false;
+  });
   const [selectedChatAgentId, setSelectedChatAgentId] = useState<string | null>(
     null,
   );

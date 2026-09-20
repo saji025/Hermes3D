@@ -2,6 +2,7 @@
 // Persisted in localStorage so the choice survives reloads.
 
 import { detectSoftwareWebGL } from "@/features/retro-office/core/graphicsQuality";
+import { isMobileDevice } from "@/lib/dom";
 
 export type OfficeRenderMode = "3d" | "2d";
 
@@ -41,11 +42,16 @@ export const loadStoredOfficeRenderMode = (): OfficeRenderMode | null => {
 
 /**
  * The mode the office should boot with: the user's stored choice, or a
- * hardware-appropriate default. Machines that rasterize WebGL in software
- * cannot drive the 3D pipeline smoothly, so they default to the pixel office.
+ * hardware-appropriate default. Mobile devices and machines that rasterize
+ * WebGL in software cannot drive the 3D pipeline smoothly, so they default
+ * to the lightweight pixel office.
  */
-export const resolveInitialOfficeRenderMode = (): OfficeRenderMode =>
-  loadStoredOfficeRenderMode() ?? (detectSoftwareWebGL() ? "2d" : "3d");
+export const resolveInitialOfficeRenderMode = (): OfficeRenderMode => {
+  const stored = loadStoredOfficeRenderMode();
+  if (stored) return stored;
+  if (isMobileDevice()) return "2d";
+  return detectSoftwareWebGL() ? "2d" : "3d";
+};
 
 export const saveOfficeRenderMode = (mode: OfficeRenderMode) => {
   if (typeof window === "undefined") return;

@@ -3161,6 +3161,18 @@ export function RetroOffice3D({
   // E3 Idea 3: spotlight.
   const [spotlightAgentId, setSpotlightAgentId] = useState<string | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
+
   const [graphicsQuality, setGraphicsQualityState] = useState<GraphicsQuality>(() =>
     resolveInitialGraphicsQuality(),
   );
@@ -5780,6 +5792,7 @@ export function RetroOffice3D({
           <SceneErrorBoundary>
           <Canvas
             key={canvasResetKey}
+            frameloop={isPageVisible ? "always" : "never"}
             dpr={[0.85, graphicsQualityConfig.maxDpr]}
             camera={{
               position: CAM_POS,
@@ -5787,9 +5800,9 @@ export function RetroOffice3D({
               near: 0.3,
               far: 320,
             }}
-            shadows={{ type: THREE.PCFShadowMap }}
+            shadows={graphicsQualityConfig.shadowMapSize > 0 ? { type: THREE.PCFShadowMap } : false}
             gl={{
-              antialias: true,
+              antialias: graphicsQuality !== "low",
               powerPreference: "high-performance",
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.0,
@@ -6431,8 +6444,8 @@ export function RetroOffice3D({
 
       {/* New Idea 2: Camera preset buttons — top left. */}
       {!readOnly && !immersiveOverlayActive ? (
-        <div className="absolute top-3 left-3 z-20 flex flex-col items-start gap-2">
-          <div className="flex items-center gap-1">
+        <div className="absolute top-3 left-3 z-20 flex flex-col items-start gap-2 select-none">
+          <div className="hidden sm:flex items-center gap-1">
             {(
               [
                 {
@@ -7568,7 +7581,7 @@ export function RetroOffice3D({
 
       {/* Toolbar — top right. */}
       {!readOnly && !immersiveOverlayActive ? (
-        <div className="absolute top-3 right-3 flex items-center gap-2 z-20">
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 sm:gap-2 z-20">
           {remoteOfficeEnabled &&
           (remoteOfficeSourceKind === "presence_endpoint"
             ? remoteOfficePresenceUrl.trim().length > 0
@@ -7588,16 +7601,16 @@ export function RetroOffice3D({
               className="flex h-7 items-center justify-center gap-1 rounded-md border border-cyan-500/35 bg-[#071018]/92 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200 transition-all backdrop-blur-sm hover:border-cyan-400/55 hover:text-white"
             >
               <UserPlus size={12} />
-              <span>Add</span>
+              <span className="hidden sm:inline">Add</span>
             </button>
           ) : null}
           {onRenderModeChange ? (
             <button
               onClick={() => onRenderModeChange("2d")}
-              title="Switch to the 2D pixel office"
-              className="flex h-7 items-center justify-center gap-1 rounded-md border border-white/15 bg-[#120e08]/92 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/75 transition-all backdrop-blur-sm hover:border-cyan-400/45 hover:text-cyan-100"
+              title="Switch to the lightweight 2D pixel office"
+              className="flex h-7 items-center justify-center gap-1 rounded-md border border-cyan-400/35 bg-[#120e08]/92 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200 transition-all backdrop-blur-sm hover:border-cyan-300 hover:text-white"
             >
-              <span>2D</span>
+              <span className="font-bold">2D</span>
             </button>
           ) : null}
           <div
@@ -7610,28 +7623,29 @@ export function RetroOffice3D({
             }`}
             title={`Runtime: ${activeAdapterType} (${gatewayStatus})`}
           >
-            {activeAdapterType} • {gatewayStatus}
+            <span className="hidden sm:inline">{activeAdapterType} • </span>{gatewayStatus}
           </div>
-          {/* New Idea 7: Heatmap toggle. */}
+          {/* Heatmap toggle — desktop only. */}
           <button
             onClick={() => setHeatmapMode((p) => !p)}
             title="Toggle heatmap"
-            className={`w-7 h-7 flex items-center justify-center rounded-md transition-all backdrop-blur-sm border ${heatmapMode ? "bg-amber-500/30 text-amber-300 border-amber-500/50" : "bg-[#1c1610]/80 text-amber-500/40 border-amber-900/20 hover:text-amber-400"}`}
+            className={`hidden sm:flex w-7 h-7 items-center justify-center rounded-md transition-all backdrop-blur-sm border ${heatmapMode ? "bg-amber-500/30 text-amber-300 border-amber-500/50" : "bg-[#1c1610]/80 text-amber-500/40 border-amber-900/20 hover:text-amber-400"}`}
           >
             <MapIcon size={12} />
           </button>
+          {/* Trails toggle — desktop only. */}
           <button
             onClick={() => setTrailMode((p) => !p)}
             title="Toggle trails"
-            className={`w-7 h-7 flex items-center justify-center rounded-md transition-all backdrop-blur-sm border ${trailMode ? "bg-amber-500/30 text-amber-300 border-amber-500/50" : "bg-[#1c1610]/80 text-amber-500/40 border-amber-900/20 hover:text-amber-400"}`}
+            className={`hidden sm:flex w-7 h-7 items-center justify-center rounded-md transition-all backdrop-blur-sm border ${trailMode ? "bg-amber-500/30 text-amber-300 border-amber-500/50" : "bg-[#1c1610]/80 text-amber-500/40 border-amber-900/20 hover:text-amber-400"}`}
           >
             <Maximize size={12} />
           </button>
-          {/* Edit office toggle. */}
+          {/* Edit office toggle — desktop only. */}
           <button
             onClick={toggleEdit}
             title={editMode ? "Done editing" : "Edit office"}
-            className={`w-7 h-7 flex items-center justify-center rounded-md transition-all backdrop-blur-sm border ${editMode ? "bg-amber-500/30 text-amber-300 border-amber-500/50" : "bg-[#1c1610]/80 text-amber-500/40 border-amber-900/20 hover:text-amber-400"}`}
+            className={`hidden sm:flex w-7 h-7 items-center justify-center rounded-md transition-all backdrop-blur-sm border ${editMode ? "bg-amber-500/30 text-amber-300 border-amber-500/50" : "bg-[#1c1610]/80 text-amber-500/40 border-amber-900/20 hover:text-amber-400"}`}
           >
             {editMode ? (
               <Check size={12} strokeWidth={2.5} />

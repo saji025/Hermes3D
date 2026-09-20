@@ -5,7 +5,7 @@
 // settings modal, and agent context menu.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Boxes, Settings2, UserPlus, X } from "lucide-react";
+import { Boxes, Minus, Plus, Settings2, UserPlus, X } from "lucide-react";
 
 import { SettingsPanel } from "@/features/office/components/panels/SettingsPanel";
 import type { OfficeRenderMode } from "@/features/office/renderMode";
@@ -205,14 +205,14 @@ export function PixelOffice2D(props: PixelOffice2DProps) {
       <div className="absolute inset-0" ref={rootRef} />
 
       {/* Office title — top left. */}
-      <div className="absolute top-3 left-3 z-20 flex items-center gap-2 select-none">
-        <div className="rounded-md border border-black/25 bg-[#11131c]/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100 backdrop-blur-sm">
+      <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 sm:gap-2 select-none">
+        <div className="rounded-md border border-black/25 bg-[#11131c]/85 px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] text-amber-100 backdrop-blur-sm">
           {officeTitleLoaded ? officeTitle : ""}
         </div>
         <div className="rounded-md border border-black/25 bg-[#11131c]/70 px-2 py-1.5 text-[10px] font-mono text-white/70 backdrop-blur-sm">
-          2D PIXEL
+          2D
         </div>
-        <div className="flex items-center gap-2 rounded-md border border-black/25 bg-[#11131c]/70 px-2 py-1.5 text-[10px] font-mono backdrop-blur-sm">
+        <div className="hidden sm:flex items-center gap-2 rounded-md border border-black/25 bg-[#11131c]/70 px-2 py-1.5 text-[10px] font-mono backdrop-blur-sm">
           <span className="text-emerald-300/85">{workingCount} working</span>
           <span className="text-white/25">·</span>
           <span className="text-amber-300/85">{idleCount} idle</span>
@@ -226,7 +226,7 @@ export function PixelOffice2D(props: PixelOffice2DProps) {
       </div>
 
       {/* Toolbar — top right. */}
-      <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 sm:gap-2">
         {onAddAgent ? (
           <button
             onClick={onAddAgent}
@@ -234,7 +234,7 @@ export function PixelOffice2D(props: PixelOffice2DProps) {
             className="flex h-7 items-center justify-center gap-1 rounded-md border border-cyan-500/35 bg-[#071018]/92 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200 transition-all backdrop-blur-sm hover:border-cyan-400/55 hover:text-white"
           >
             <UserPlus size={12} />
-            <span>Add</span>
+            <span className="hidden sm:inline">Add</span>
           </button>
         ) : null}
         <div
@@ -247,7 +247,7 @@ export function PixelOffice2D(props: PixelOffice2DProps) {
           }`}
           title={`Runtime: ${activeAdapterType} (${gatewayStatus})`}
         >
-          {activeAdapterType} • {gatewayStatus}
+          <span className="hidden sm:inline">{activeAdapterType} • </span>{gatewayStatus}
         </div>
         <button
           onClick={() => onRenderModeChange("3d")}
@@ -270,10 +270,30 @@ export function PixelOffice2D(props: PixelOffice2DProps) {
         </button>
       </div>
 
+      {/* Touch & mouse floating zoom controls — bottom right. */}
+      <div className="absolute bottom-14 right-3 z-20 flex flex-col gap-1.5 select-none">
+        <button
+          type="button"
+          onClick={() => bridge.callbacks.zoomIn?.()}
+          title="Zoom in"
+          className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-white/15 bg-[#11131c]/85 text-white/80 shadow-lg backdrop-blur-sm transition-all hover:border-cyan-400/45 hover:text-white active:scale-95"
+        >
+          <Plus size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={() => bridge.callbacks.zoomOut?.()}
+          title="Zoom out"
+          className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-white/15 bg-[#11131c]/85 text-white/80 shadow-lg backdrop-blur-sm transition-all hover:border-cyan-400/45 hover:text-white active:scale-95"
+        >
+          <Minus size={14} />
+        </button>
+      </div>
+
       {/* Controls hint — bottom center (event console and chat own the corners). */}
-      <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 pointer-events-none select-none">
-        <div className="rounded-full bg-black/50 px-3 py-1 text-[10px] font-mono text-white/55 backdrop-blur-sm">
-          drag to pan · scroll to zoom · click an agent to chat
+      <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 pointer-events-none select-none max-w-[90vw] text-center">
+        <div className="rounded-full bg-black/50 px-3 py-1 text-[9px] sm:text-[10px] font-mono text-white/55 backdrop-blur-sm truncate">
+          drag to pan · pinch/scroll to zoom · tap agent to chat
         </div>
       </div>
 

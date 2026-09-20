@@ -17,6 +17,9 @@ export type PixelBridgeCallbacks = {
   onAgentClick?: (agentId: string) => void;
   onAgentContextMenu?: (agentId: string, clientX: number, clientY: number) => void;
   onStationInteract?: (kind: PixelInteractiveStationKind) => void;
+  zoomIn?: () => void;
+  zoomOut?: () => void;
+  resetZoom?: () => void;
 };
 
 export type PixelSceneBridge = {

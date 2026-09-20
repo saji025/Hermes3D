@@ -93,12 +93,15 @@ export const createPixelOfficeScene = (params: {
     private animClock = 0;
     private dragStart: { x: number; y: number; sx: number; sy: number } | null = null;
     private dragDistance = 0;
+    private pinchDistance = 0;
+    private pinchZoom = 1;
 
     constructor() {
       super("pixel-office-scene");
     }
 
     create() {
+      this.input.addPointer(2);
       this.sim = createPixelSimulation(map);
       this.registerSprites([...buildGroundTileSprites(), ...buildFurnitureSprites()]);
       this.renderGround();
@@ -273,6 +276,28 @@ export const createPixelOfficeScene = (params: {
 
     private setupPointerControls() {
       this.input.mouse?.disableContextMenu();
+
+      bridge.callbacks.zoomIn = () => {
+        const camera = this.cameras.main;
+        const next = PhaserLib.Math.Clamp(camera.zoom + 0.25, this.minZoom(), MAX_ZOOM);
+        camera.setZoom(next);
+      };
+      bridge.callbacks.zoomOut = () => {
+        const camera = this.cameras.main;
+        const next = PhaserLib.Math.Clamp(camera.zoom - 0.25, this.minZoom(), MAX_ZOOM);
+        camera.setZoom(next);
+      };
+      bridge.callbacks.resetZoom = () => {
+        const camera = this.cameras.main;
+        const zoom = PhaserLib.Math.Clamp(
+          Math.max(0.75, Math.floor(this.containZoom() * 4) / 4),
+          this.minZoom(),
+          MAX_ZOOM,
+        );
+        camera.setZoom(zoom);
+        camera.centerOn(worldWidth / 2, worldHeight * 0.42);
+      };
+
       this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
         this.dragStart = {
           x: pointer.x,
@@ -283,6 +308,27 @@ export const createPixelOfficeScene = (params: {
         this.dragDistance = 0;
       });
       this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+        const p1 = this.input.pointer1;
+        const p2 = this.input.pointer2;
+
+        if (p1 && p2 && p1.isDown && p2.isDown) {
+          const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+          if (this.pinchDistance === 0) {
+            this.pinchDistance = dist;
+            this.pinchZoom = this.cameras.main.zoom;
+          } else {
+            const factor = dist / this.pinchDistance;
+            const nextZoom = PhaserLib.Math.Clamp(
+              this.pinchZoom * factor,
+              this.minZoom(),
+              MAX_ZOOM,
+            );
+            this.cameras.main.setZoom(nextZoom);
+          }
+          return;
+        }
+        this.pinchDistance = 0;
+
         if (!pointer.isDown || !this.dragStart) return;
         const camera = this.cameras.main;
         const dx = pointer.x - this.dragStart.x;
